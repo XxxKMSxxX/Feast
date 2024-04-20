@@ -1,0 +1,54 @@
+version: '3.7'
+services:
+
+  mysql:
+    container_name: mysql
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: feast
+      MYSQL_USER: feast
+      MYSQL_PASSWORD: feast
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    container_name: redis
+    image: redis:6.0
+    ports:
+      - "6379:6379"
+
+  feast-core:
+    container_name: feast-core
+    image: feastdev/feast-core:latest
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/feast
+      SPRING_DATASOURCE_USERNAME: feast
+      SPRING_DATASOURCE_PASSWORD: feast
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      FEAST_CORE_CONFIG_PATH: /feast/feast-core.yml
+    volumes:
+      - ./conf/feast:/feast
+    ports:
+      - "6565:6565"
+    depends_on:
+      - mysql
+
+  feast-serving:
+    container_name: feast-serving
+    image: feastdev/feast-serving:latest
+    environment:
+      FEAST_SERVING_CONFIG_PATH: /feast/feast-serving.yml
+      SPRING_REDIS_HOST: redis
+    volumes:
+      - ./conf/feast:/feast
+    ports:
+      - "6566:6566"
+    depends_on:
+      - redis
+      - feast-core
+
+volumes:
+  mysql_data:

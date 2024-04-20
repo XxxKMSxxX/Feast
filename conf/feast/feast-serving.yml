@@ -1,0 +1,9 @@
+feast:
+  active_store: online_store
+
+  online_store:
+    type: REDIS
+    connection_string: redis:6379
+
+grpc:
+  port: 6566
